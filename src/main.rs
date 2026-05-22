@@ -6,43 +6,43 @@ use std::path::PathBuf;
 use std::process::Command;
 
 #[derive(Parser, Debug)]
-#[command(author, version, about = "Descargador de videos nativo")]
+#[command(author, version, about = "Native media grabber CLI tool")]
 struct Args {
-    /// URL del video a descargar
+    /// Video URL to fetch
     #[arg(short, long)]
     url: Option<String>,
 
-    /// Carpeta donde guardar el video
+    /// Where to dump the downloaded file
     #[arg(short, long)]
     output: Option<PathBuf>,
 
-    /// Calidad del video (best, worst, etc.)
+    /// Video quality preset (e.g., best, worst)
     #[arg(short, long, default_value = "best")]
     quality: String,
 }
 
 fn main() {
-    // Capturamos los argumentos de la terminal
+    // Grab CLI arguments
     let mut args = Args::parse();
 
-    // Modo interactivo si no se pasa URL
+    // Trigger interactive mode if no URL is passed
     if args.url.is_none() {
-        println!("=== Descargador de Videos para Estudio ===");
+        println!("=== Heavy-Duty Video Downloader ===");
 
         let mut url_input = String::new();
-        print!("Ingrese la URL del video: ");
+        print!("Drop the video URL here: ");
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut url_input).unwrap();
         let url_input = url_input.trim().to_string();
 
         if url_input.is_empty() {
-            eprintln!("Error: La URL no puede estar vacía.");
+            eprintln!("Error: URL can't be empty, chief.");
             return;
         }
         args.url = Some(url_input);
 
         let mut out_input = String::new();
-        print!("Carpeta de destino (dejar en blanco para usar './descargas'): ");
+        print!("Target folder (hit Enter for default './descargas'): ");
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut out_input).unwrap();
         let out_input = out_input.trim();
@@ -55,7 +55,7 @@ fn main() {
     let url = args.url.unwrap();
     let quality = args.quality;
 
-    // Configurar ruta de salida
+    // Set up output path destination
     let output_path = match args.output {
         Some(path) => path,
         None => {
@@ -65,23 +65,23 @@ fn main() {
         }
     };
 
-    // Crear la carpeta si no existe
+    // Spin up the directory if it's missing
     if let Err(e) = fs::create_dir_all(&output_path) {
-        eprintln!("Error creando el directorio: {}", e);
+        eprintln!("Error creating directory: {}", e);
         return;
     }
 
-    // Construimos la plantilla del nombre del archivo dentro de la carpeta elegida
+    // Build the naming template inside the target folder
     let mut template = output_path.clone();
     template.push("%(title)s.%(ext)s");
     let template_str = template.to_string_lossy().into_owned();
 
-    println!("Iniciando descarga desde: {}", url);
-    println!("Guardando en: {}", output_path.display());
-    println!("Calidad seleccionada: {}", quality);
+    println!("Firing up download from: {}", url);
+    println!("Saving files to: {}", output_path.display());
+    println!("Selected quality: {}", quality);
     println!("--------------------------------------------------");
 
-    // Llamamos directamente al binario de tu sistema operativo
+    // Call the system's yt-dlp binary directly
     let status = Command::new("yt-dlp")
         .arg("-f")
         .arg(&quality)
@@ -89,23 +89,23 @@ fn main() {
         .arg(&template_str)
         .arg("--no-playlist")
         .arg(&url)
-        // Esto hereda los flujos de entrada/salida para que veas la barra de progreso real en tu shell
+        // Inherit I/O streams so the real-time progress bar shows up clean in your shell
         .stdin(std::process::Stdio::inherit())
         .stdout(std::process::Stdio::inherit())
         .stderr(std::process::Stdio::inherit())
-        .status(); // Ejecuta y bloquea el hilo hasta que termine la descarga real
+        .status(); // Block thread execution until the actual download finishes
 
     match status {
         Ok(exit_status) if exit_status.success() => {
             println!("\n--------------------------------------------------");
-            println!("¡Proceso completado exitosamente!");
-            println!("Revisa tu archivo en: {}", output_path.display());
+            println!("All done! Process finished successfully.");
+            println!("Go check your file at: {}", output_path.display());
         }
         Ok(exit_status) => {
-            eprintln!("\n`yt-dlp` terminó con un código de error: {}", exit_status);
+            eprintln!("\n`yt-dlp` bailed out with an error code: {}", exit_status);
         }
         Err(e) => {
-            eprintln!("\nNo se pudo ejecutar `yt-dlp`. ¿Seguro que está instalado? Error: {}", e);
+            eprintln!("\nFailed to run `yt-dlp`. Are you sure it's installed? Error: {}", e);
         }
     }
 }

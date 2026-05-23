@@ -16,7 +16,7 @@ Developed as a learning project to ditch Python and embrace the strict, lightnin
 *   **Safe Pathing:** Automatically handles cross-platform paths and dumps everything neatly inside a local `./descargas` directory if you don't specify one.
 
 ---
-
+I use arch btw
 ## Prerequisites
 
 Since this tool talks directly to your OS, you need to have these bad boys installed and available in your `$PATH`:
@@ -28,4 +28,3 @@ On **Arch Linux**, just run:
 ```bash
 sudo pacman -S yt-dlp ffmpeg
 
-I use arch btw
